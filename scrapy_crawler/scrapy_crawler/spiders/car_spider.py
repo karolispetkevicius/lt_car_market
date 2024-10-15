@@ -1,91 +1,95 @@
+from typing import Any
 import scrapy
 from parsel import Selector
+from scrapy_crawler.data_processor import process_data
+from scrapy.utils.project import get_project_settings
+import psycopg2
+import pandas as pd
 
-
-class CarSpiderSpider(scrapy.Spider):
+class CarSpider(scrapy.Spider):
     name = "car_spider"
     allowed_domains = ["autogidas.lt"]
     start_urls = ["https://autogidas.lt/skelbimai/automobiliai/"]
 
     car_brands = [
-        # 'AC',
-        # 'Acura',
-        # 'Aixam',
-        # 'Alfa+Romeo',
-        # 'Alpina',
-        # 'Asia',
+        'AC',
+        'Acura',
+        'Aixam',
+        'Alfa+Romeo',
+        'Alpina',
+        'Asia',
         'Audi',
-        # 'Austin',
-        # 'Bentley',
+        'Austin',
+        'Bentley',
         'BMW'
-        # 'Buick',
-        # 'Cadillac',
-        # 'Chevrolet',
-        # 'Chrysler',
-        # 'Citroen',
-        # 'Cupra',
-        # 'Dacia',
-        # 'Daewoo',
-        # 'Daihatsu',
-        # 'DFSK',
-        # 'Dodge',
-        # 'DS+Automobiles',
-        # 'Fiat',
-        # 'Ford',
-        # 'GAZ',
-        # 'GMC',
-        # 'Honda',
-        # 'Hummer',
-        # 'Hyundai',
-        # 'Infiniti',
-        # 'Isuzu',
-        # 'Iveco',
-        # 'Jaguar',
-        # 'Jeep',
-        # 'Kia',
-        # 'Lada',
-        # 'Lancia',
-        # 'Land+Rover',
-        # 'Landwind',
-        # 'Lexus',
-        # 'Lincoln',
-        # 'LuAZ',
-        # 'Man',
-        # 'Maserati',
-        # 'Mazda',
-        # 'Mercedes-Benz',
-        # 'MG',
-        # 'Microcar',
-        # 'MINI',
-        # 'Mitsubishi',
-        # 'Moskvich',
-        # 'Nissan',
-        # 'Opel',
-        # 'Ora',
-        # 'Peugeot',
-        # 'Polestar',
-        # 'Pontiac',
-        # 'Porsche',
-        # 'Renault',
-        # 'Rolls-Royce',
-        # 'Rover',
-        # 'Saab',
-        # 'Santana',
-        # 'Seat',
-        # 'Skoda',
-        # 'Smart',
-        # 'Ssangyong',
-        # 'Subaru',
-        # 'Suzuki',
-        # 'Tata',
-        # 'Tesla',
-        # 'Toyota',
-        # 'Trabant',
-        # 'UAZ',
-        # 'Volkswagen',
-        # 'Volvo',
-        # 'Yunlong Motors',
-        # 'ZAZ'
+        'Buick',
+        'Cadillac',
+        'Chevrolet',
+        'Chrysler',
+        'Citroen',
+        'Cupra',
+        'Dacia'
+        'Daewoo',
+        'Daihatsu',
+        'DFSK',
+        'Dodge'
+        'DS+Automobiles',
+        'Fiat',
+        'Ford',
+        'GAZ',
+        'GMC',
+        'Honda',
+        'Hummer',
+        'Hyundai',
+        'Infiniti',
+        'Isuzu',
+        'Iveco',
+        'Jaguar',
+        'Jeep',
+        'Kia',
+        'Lada',
+        'Lancia',
+        'Land+Rover',
+        'Landwind',
+        'Lexus',
+        'Lincoln',
+        'LuAZ',
+        'Man',
+        'Maserati',
+        'Mazda',
+        'Mercedes-Benz',
+        'MG',
+        'Microcar',
+        'MINI',
+        'Mitsubishi',
+        'Moskvich',
+        'Nissan',
+        'Opel',
+        'Ora',
+        'Peugeot',
+        'Polestar',
+        'Pontiac',
+        'Porsche',
+        'Renault',
+        'Rolls-Royce',
+        'Rover',
+        'Saab',
+        'Santana',
+        'Seat',
+        'Skoda',
+        'Smart',
+        'Ssangyong',
+        'Subaru',
+        'Suzuki',
+        'Tata',
+        'Tesla',
+        'Toyota',
+        'Trabant',
+        'UAZ',
+        'Volkswagen',
+        'Volvo',
+        'Yunlong Motors',
+        'ZAZ'
     ]
 
     def start_requests(self):
@@ -104,7 +108,7 @@ class CarSpiderSpider(scrapy.Spider):
         'upgrade-insecure-requests': '1',
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
         }
-
+        
         for brand in self.car_brands:
             
             page = 1
@@ -118,6 +122,23 @@ class CarSpiderSpider(scrapy.Spider):
                 meta={'brand': brand} 
             )
 
+    
+    def __init__(self, *args, **kwargs):
+        super(CarSpider, self).__init__(*args, **kwargs)
+        self.data = []  # Initialize an empty list to collect data
+
+        # Get the project settings to use the PostgreSQL credentials
+        self.settings = get_project_settings()
+
+        # Connect to PostgreSQL database using settings from settings.py
+        self.conn = psycopg2.connect(
+            dbname=self.settings['POSTGRES']['dbname'],
+            user=self.settings['POSTGRES']['user'],
+            password=self.settings['POSTGRES']['password'],
+            host=self.settings['POSTGRES']['host'],
+            port=self.settings['POSTGRES']['port']
+        )
+        self.cur = self.conn.cursor()
 
     def parse(self, response):
         #self.log(f"Response URL: {response.url}")
@@ -162,10 +183,11 @@ class CarSpiderSpider(scrapy.Spider):
             current_page = int(response.url.split('page=')[-1])
             next_page = current_page + 1
 
-        # Check if the next page exists
-        if next_page <= last_page_number:
-            next_url = f"https://autogidas.lt/skelbimai/automobiliai/?f_1[0]={response.meta['brand']}&f_model_14[0]=&f_50=atnaujinimo_laika_asc&page={next_page}"
-            yield scrapy.Request(url=next_url, callback=self.parse, meta={'brand': response.meta['brand']})
+
+            # Check if the next page exists
+            if next_page <= last_page_number:
+                next_url = f"https://autogidas.lt/skelbimai/automobiliai/?f_1[0]={response.meta['brand']}&f_model_14[0]=&f_50=atnaujinimo_laika_asc&page={next_page}"
+                yield scrapy.Request(url=next_url, callback=self.parse, meta={'brand': response.meta['brand']})
 
     
     def parse_ad(self, response):
@@ -194,7 +216,7 @@ class CarSpiderSpider(scrapy.Spider):
 
         car_model = response.meta['car_model']
 
-        yield {
+        self.data.append({
             'brand': response.meta['brand'],
             'model': car_model,
             'title': car_title,
@@ -204,7 +226,41 @@ class CarSpiderSpider(scrapy.Spider):
             'mileage': mileage,
             'gearbox': gearbox,
             'url': response.url
-        }
+        })
+
+    def closed(self, reason):
+
+        df = process_data(self.data)
+        self.store_data_postgres(df)
+
+    def store_data_postgres(self,df):
+        # Define a query for inserting data
+        insert_query = """
+            INSERT INTO car_listings (brand, model, title, price, year, fuel_type, mileage, gearbox, url)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (url) DO NOTHING;
+        """
+
+        for _, row in df.iterrows():
+            try:
+                self.cur.execute(insert_query, (
+                    row['brand'],
+                    row['model'],
+                    row['title'],
+                    row['price'],
+                    row['year'],
+                    row['fuel_type'],
+                    row['mileage'],
+                    row['gearbox'],
+                    row['url']
+                ))
+                self.conn.commit()  # Commit after each row
+            except Exception as e:
+                self.conn.rollback()  # Rollback in case of an error
+                self.logger.error(f"Failed to insert data into PostgreSQL: {e}")
+
+        self.cur.close()
+        self.conn.close()
 
 
 
