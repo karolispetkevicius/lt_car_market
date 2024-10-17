@@ -12,103 +12,88 @@ class CarSpider(scrapy.Spider):
     start_urls = ["https://autogidas.lt/skelbimai/automobiliai/"]
 
     car_brands = [
-        'AC',
-        'Acura',
-        'Aixam',
-        'Alfa+Romeo',
-        'Alpina',
-        'Asia',
-        'Audi',
-        'Austin',
-        'Bentley',
-        'BMW'
-        'Buick',
-        'Cadillac',
-        'Chevrolet',
-        'Chrysler',
-        'Citroen',
-        'Cupra',
-        'Dacia'
-        'Daewoo',
-        'Daihatsu',
-        'DFSK',
-        'Dodge'
-        'DS+Automobiles',
-        'Fiat',
-        'Ford',
-        'GAZ',
-        'GMC',
-        'Honda',
-        'Hummer',
-        'Hyundai',
-        'Infiniti',
-        'Isuzu',
-        'Iveco',
-        'Jaguar',
-        'Jeep',
-        'Kia',
-        'Lada',
-        'Lancia',
-        'Land+Rover',
-        'Landwind',
-        'Lexus',
-        'Lincoln',
-        'LuAZ',
-        'Man',
-        'Maserati',
-        'Mazda',
-        'Mercedes-Benz',
-        'MG',
-        'Microcar',
-        'MINI',
-        'Mitsubishi',
-        'Moskvich',
-        'Nissan',
-        'Opel',
-        'Ora',
-        'Peugeot',
-        'Polestar',
-        'Pontiac',
-        'Porsche',
-        'Renault',
-        'Rolls-Royce',
-        'Rover',
-        'Saab',
-        'Santana',
-        'Seat',
-        'Skoda',
-        'Smart',
-        'Ssangyong',
-        'Subaru',
-        'Suzuki',
-        'Tata',
-        'Tesla',
-        'Toyota',
-        'Trabant',
-        'UAZ',
-        'Volkswagen',
-        'Volvo',
-        'Yunlong Motors',
-        'ZAZ'
-    ]
+    #     'AC',
+    #     'Acura',
+    #     'Aixam',
+    # #     'Alfa+Romeo',
+    #     'Alpina',
+    #     'Asia',
+    # #    'Audi',
+    #      'Austin',
+    #      'Bentley',
+         'BMW'
+        #  'Buick',
+        #  'Cadillac',
+        #  'Chevrolet'
+        #  'Chrysler',
+        #   'Citroen'
+        #  'Cupra',
+        #  'Dacia'
+        #  'Daewoo',
+        #  'Daihatsu',
+        #  'DFSK',
+        #  'Dodge'
+        #  'DS+Automobiles',
+        #   'Fiat'
+        #  'Ford',
+        #  'GAZ',
+        #  'GMC',
+        #  'Honda',
+        #  'Hummer',
+        #  'Hyundai',
+        #  'Infiniti',
+        #  'Isuzu',
+        #  'Iveco',
+        #  'Jaguar',
+        #  'Jeep',
+        #  'Kia'
+    #     'Lada',
+    #     'Lancia',
+    #     'Land+Rover',
+    #     'Landwind',
+    #     'Lexus',
+    #     'Lincoln',
+    #     'LuAZ',
+    #     'Man',
+    #     'Maserati',
+    #     'Mazda',
+    #     'Mercedes-Benz',
+    #     'MG',
+    #     'Microcar',
+    #     'MINI',
+    #     'Mitsubishi',
+    #     'Moskvich',
+    #     'Nissan',
+    #      'Opel',
+    #     'Ora',
+    #     'Peugeot',
+    #     'Polestar',
+    #     'Pontiac',
+    #     'Porsche',
+    #     'Renault',
+    #     'Rolls-Royce',
+    #     'Rover',
+    #      'Saab'
+    #     'Santana',
+    #     'Seat',
+    #     'Skoda',
+    #     'Smart',
+    #     'Ssangyong',
+    #     'Subaru',
+    #     'Suzuki',
+    #     'Tata',
+    #     'Tesla',
+    #     'Toyota',
+    #     'Trabant',
+    #     'UAZ',
+    #     'Volkswagen',
+    #     'Volvo',
+    #     'Yunlong Motors',
+    #     'ZAZ'
+     ]
 
     def start_requests(self):
 
-        headers = {
-        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'accept-language': 'en-US,en;q=0.9',
-        'priority': 'u=0, i',
-        'sec-ch-ua': '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
-        'sec-fetch-dest': 'document',
-        'sec-fetch-mode': 'navigate',
-        'sec-fetch-site': 'none',
-        'sec-fetch-user': '?1',
-        'upgrade-insecure-requests': '1',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
-        }
-        
         for brand in self.car_brands:
             
             page = 1
@@ -116,7 +101,6 @@ class CarSpider(scrapy.Spider):
 
             yield scrapy.Request(
                 url=url,
-                headers=headers,
                 method="GET",
                 callback=self.parse,
                 meta={'brand': brand} 
@@ -141,22 +125,7 @@ class CarSpider(scrapy.Spider):
         self.cur = self.conn.cursor()
 
     def parse(self, response):
-        #self.log(f"Response URL: {response.url}")
 
-        headers = {
-        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'accept-language': 'en-US,en;q=0.9',
-        'priority': 'u=0, i',
-        'sec-ch-ua': '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
-        'sec-fetch-dest': 'document',
-        'sec-fetch-mode': 'navigate',
-        'sec-fetch-site': 'none',
-        'sec-fetch-user': '?1',
-        'upgrade-insecure-requests': '1',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
-        }
         car_listings = response.css('.article-item a::attr(href)').getall()
         car_models = response.css('h2.item-title::text').getall()
 
@@ -164,7 +133,6 @@ class CarSpider(scrapy.Spider):
 
             full_ad_url = response.urljoin(car_ad_link)
             yield scrapy.Request(url=full_ad_url,
-                                headers=headers,
                                 callback=self.parse_ad,
                                 meta={'brand': response.meta['brand'],
                                 'car_model': car_model})
@@ -210,7 +178,7 @@ class CarSpider(scrapy.Spider):
             mileage_value = mileage_selector.xpath('//b/text()').get()
             mileage = int(mileage_value.replace(" ","").replace("km",""))
         else:
-            mileage = None
+            mileage = 0
 
         gearbox = response.css('.icon.param-gearbox b::text').get()
 
@@ -238,7 +206,7 @@ class CarSpider(scrapy.Spider):
         insert_query = """
             INSERT INTO car_listings (brand, model, title, price, year, fuel_type, mileage, gearbox, url)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (url) DO NOTHING;
+            ON CONFLICT (url) DO NOTHING; -- This ensures no error on duplicate URLS
         """
 
         for _, row in df.iterrows():
@@ -257,7 +225,7 @@ class CarSpider(scrapy.Spider):
                 self.conn.commit()  # Commit after each row
             except Exception as e:
                 self.conn.rollback()  # Rollback in case of an error
-                self.logger.error(f"Failed to insert data into PostgreSQL: {e}")
+                self.logger.error(f"Failed to insert data into PostgreSQL for row: {row.to_dict()} due to error: {e}")
 
         self.cur.close()
         self.conn.close()
