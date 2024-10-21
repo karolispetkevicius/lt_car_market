@@ -12,14 +12,16 @@ router = APIRouter()
 async def get_listings(
     brand: Optional[List[str]] = Query(None),  # Define brand parameter directly
     model: Optional[str] = None,
-    year: Optional[int] = None,
+    min_year: Optional[int] = None,
+    max_year: Optional[int] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
     order_by : Optional[str] = Query("id"),
     order_direction: Optional[str] = Query("asc"),
+    page: int = 1,
+    limit: int = 20,
     db: AsyncSession = Depends(get_db)
 ):
-    print(f"Brand filters: {brand}")
     query = select(CarListing)
 
     # Apply filters to the query dynamically
@@ -27,8 +29,10 @@ async def get_listings(
         query = query.where(CarListing.brand.in_(brand))
     if model:
         query = query.where(CarListing.model == model)
-    if year:
-        query = query.where(CarListing.year == year)
+    if min_year:
+        query = query.where(CarListing.year >= min_year)
+    if max_year:
+        query = query.where(CarListing.year <= max_year)  
     if min_price:
         query = query.where(CarListing.price >= min_price)
     if max_price:
@@ -39,7 +43,11 @@ async def get_listings(
             query = query.order_by(getattr(CarListing, order_by).desc())
         else:
             query = query.order_by(getattr(CarListing, order_by))
-            
+    
+    # Implement pagination
+    offset = (page - 1) * limit
+    query = query.offset(offset).limit(limit)
+
     result = await db.execute(query)
     listings = result.scalars().all()
 
